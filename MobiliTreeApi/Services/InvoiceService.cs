@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LanguageExt;
+using LanguageExt.Common;
+using LanguageExt.UnsafeValueAccess;
 using MobiliTreeApi.Domain;
 using MobiliTreeApi.Exceptions;
 using MobiliTreeApi.Repositories;
@@ -9,7 +12,7 @@ namespace MobiliTreeApi.Services
 {
     public interface IInvoiceService
     {
-        List<Invoice> GetInvoices(string parkingFacilityId);
+        Result<List<Invoice>> GetInvoices(string parkingFacilityId);
         Invoice GetInvoice(string parkingFacilityId, string customerId);
     }
 
@@ -26,14 +29,14 @@ namespace MobiliTreeApi.Services
             _customerRepository = customerRepository;
         }
 
-        public List<Invoice> GetInvoices(string parkingFacilityId)
+        public Result<List<Invoice>> GetInvoices(string parkingFacilityId)
         {
-            var serviceProfile = _parkingFacilityRepository.GetServiceProfile(parkingFacilityId);
-            if (serviceProfile == null)
+            var serviceProfileOption = _parkingFacilityRepository.GetServiceProfile(parkingFacilityId);
+            if (serviceProfileOption.IsNone)
             {
-                throw new ParkingFacilityNotFoundException("Invalid Parking Facility Id", $"Invalid parking facility id '{parkingFacilityId}'");
+                return new Result<List<Invoice>>(new ParkingFacilityNotFoundException("Invalid Parking Facility Id", $"Invalid parking facility id '{parkingFacilityId}'"));
             }
-
+            var serviceProfile = serviceProfileOption.ValueUnsafe();
             List<Invoice> invoices = [];
 
             var sessions = _sessionsRepository.GetSessions(parkingFacilityId);
@@ -41,9 +44,14 @@ namespace MobiliTreeApi.Services
             var sessionsByCustomer = sessions.GroupBy(x => x.CustomerId);
 
             foreach (var session in sessionsByCustomer) { 
-                var customer = _customerRepository.GetCustomer(session.Key);
+                Option<Customer> customer = _customerRepository.GetCustomer(session.Key);
                 var customerSessions = session.ToList();
-                var customerHasContract = customer?.ContractedParkingFacilityIds.Contains(parkingFacilityId) ?? false;
+                var customerHasContract = customer.Match(c =>
+                {
+                    return c.ContractedParkingFacilityIds.Contains(parkingFacilityId);
+                },
+                () => false);
+
                 var invoice = new Invoice
                 {
                     CustomerId = session.Key,                    

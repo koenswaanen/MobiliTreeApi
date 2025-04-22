@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using LanguageExt;
 using MobiliTreeApi.Domain;
 
 namespace MobiliTreeApi.Repositories
@@ -12,14 +13,17 @@ namespace MobiliTreeApi.Repositories
             _customers = customers;
         }
 
-        public Customer GetCustomer(string customerId)
+        public Option<Customer> GetCustomer(string customerId)
         {
-            if (_customers.TryGetValue(customerId, out var customer))
-            {
-                return customer;    
-            }
+            //if (_customers.TryGetValue(customerId, out var customer))
+            //{
+            //    return customer;    
+            //}
 
-            return null;
+            //return null;
+            return _customers.TryGetValue(customerId, out var customer)
+                ? customer
+                : Option<Customer>.None;
         }
     }
 }

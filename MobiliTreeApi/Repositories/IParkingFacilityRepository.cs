@@ -1,9 +1,10 @@
-﻿using MobiliTreeApi.Domain;
+﻿using LanguageExt;
+using MobiliTreeApi.Domain;
 
 namespace MobiliTreeApi.Repositories
 {
     public interface IParkingFacilityRepository
     {
-        ServiceProfile GetServiceProfile(string parkingFacilityId);
+        Option<ServiceProfile> GetServiceProfile(string parkingFacilityId);
     }
 }

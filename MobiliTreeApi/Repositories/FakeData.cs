@@ -8,12 +8,12 @@ namespace MobiliTreeApi.Repositories
     {
         public static List<Session> GetSeedSessions() =>
         [
-            new Session {CustomerId = "c001", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 8, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 9, 0, 0)},
-            new Session {CustomerId = "c002", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 9, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 10, 0, 0)},
-            new Session {CustomerId = "c003", ParkingFacilityId = "pf002", StartDateTime = new DateTime(2023, 10, 1, 10, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 11, 0, 0)},
-            new Session {CustomerId = "c004", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 11, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 12, 0, 0)},
-            new Session {CustomerId = "geen idee", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 12, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 13, 0, 0)},
-            new Session {CustomerId = "c001", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 13, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 14, 0, 0)},
+            //new Session {CustomerId = "c001", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 8, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 9, 0, 0)},
+            //new Session {CustomerId = "c002", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 9, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 10, 0, 0)},
+            //new Session {CustomerId = "c003", ParkingFacilityId = "pf002", StartDateTime = new DateTime(2023, 10, 1, 10, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 11, 0, 0)},
+            //new Session {CustomerId = "c004", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 11, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 12, 0, 0)},
+            //new Session {CustomerId = "geen idee", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 12, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 13, 0, 0)},
+            //new Session {CustomerId = "c001", ParkingFacilityId = "pf001", StartDateTime = new DateTime(2023, 10, 1, 13, 0, 0), EndDateTime = new DateTime(2023, 10, 1, 14, 0, 0)},
         ];
 
         public static Dictionary<string, Customer> GetSeedCustomers() =>

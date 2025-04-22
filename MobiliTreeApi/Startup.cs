@@ -7,6 +7,7 @@ using MobiliTreeApi.Repositories;
 using MobiliTreeApi.Services;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http.Features;
+using MobiliTreeApi.Exceptions;
 
 namespace MobiliTreeApi
 {
@@ -54,6 +55,7 @@ namespace MobiliTreeApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseExceptionHandler();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

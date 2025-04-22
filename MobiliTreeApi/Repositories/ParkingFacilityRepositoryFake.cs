@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using LanguageExt;
 using MobiliTreeApi.Domain;
 
 namespace MobiliTreeApi.Repositories
@@ -12,14 +13,11 @@ namespace MobiliTreeApi.Repositories
             _serviceProfiles = serviceProfiles;
         }
 
-        public ServiceProfile GetServiceProfile(string parkingFacilityId)
-        {
-            if (_serviceProfiles.TryGetValue(parkingFacilityId, out var serviceProfile))
-            {
-                return serviceProfile;    
-            }
-
-            return null;
+        public Option<ServiceProfile> GetServiceProfile(string parkingFacilityId)
+        {    
+            return _serviceProfiles.TryGetValue(parkingFacilityId, out var serviceProfile)
+                ? serviceProfile
+                : Option<ServiceProfile>.None;
         }
     }
 }

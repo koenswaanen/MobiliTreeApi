@@ -23,14 +23,28 @@ namespace MobiliTreeApi.Tests
         [Fact]
         public void GivenSessionsService_WhenQueriedForInexistentParkingFacility_ThenThrowException()
         {
-            var ex = Assert.Throws<ParkingFacilityNotFoundException>(() => GetSut().GetInvoices("nonExistingParkingFacilityId"));
-            Assert.Equal("Invalid parking facility id 'nonExistingParkingFacilityId'", ex.Message);
+            var parkingFacilityId = "nonExistingParkingFacilityId";
+            var invoicesResult = GetSut().GetInvoices(parkingFacilityId);
+            invoicesResult.Match(
+                invoices =>
+                {
+                    Assert.Null(invoices);
+                    return invoices;
+                },
+                exception =>
+                {
+                    Assert.IsType<ParkingFacilityNotFoundException>(exception);
+                    Assert.Equal("Invalid parking facility id 'nonExistingParkingFacilityId'", exception.Message);
+                    return null;
+                });           
         }
 
         [Fact]
         public void GivenEmptySessionsStore_WhenQueriedForUnknownParkingFacility_ThenReturnEmptyInvoiceList()
         {
-            var result = GetSut().GetInvoices("pf001");
+            var result = GetSut().GetInvoices("pf001").Match(
+                invoices => invoices,
+                exception => null);
 
             Assert.Empty(result);
         }
@@ -47,8 +61,8 @@ namespace MobiliTreeApi.Tests
                 EndDateTime = startDateTime.AddHours(1)
             });
 
-            var result = GetSut().GetInvoices("pf001");
-            
+            var result = GetSut().GetInvoices("pf001").Match(invoices => invoices, exception => null);
+
             var invoice = Assert.Single(result);
             Assert.NotNull(invoice);
             Assert.Equal("pf001", invoice.ParkingFacilityId);
@@ -81,7 +95,7 @@ namespace MobiliTreeApi.Tests
                 EndDateTime = startDateTime.AddHours(1)
             });
 
-            var result = GetSut().GetInvoices("pf001");
+            var result = GetSut().GetInvoices("pf001").Match(invoices => invoices, exception => null);
 
             Assert.Equal(2, result.Count);
             var invoiceCust1 = result.SingleOrDefault(x => x.CustomerId == "c001");
@@ -120,7 +134,7 @@ namespace MobiliTreeApi.Tests
                 EndDateTime = startDateTime.AddHours(1)
             });
 
-            var result = GetSut().GetInvoices("pf001");
+            var result = GetSut().GetInvoices("pf001").Match(invoices => invoices, exception => null);
 
             Assert.Equal(2, result.Count);
             var invoiceCust1 = result.SingleOrDefault(x => x.CustomerId == "c001");

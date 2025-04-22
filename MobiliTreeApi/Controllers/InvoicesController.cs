@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using MobiliTreeApi.Domain;
+using MobiliTreeApi.Exceptions;
 using MobiliTreeApi.Services;
 
 namespace MobiliTreeApi.Controllers
@@ -25,9 +26,22 @@ namespace MobiliTreeApi.Controllers
 
         [HttpGet]
         [Route("{parkingFacilityId}")]
-        public List<Invoice> Get(string parkingFacilityId)
+        public ActionResult<List<Invoice>> Get(string parkingFacilityId)
         {
-            return _invoiceService.GetInvoices(parkingFacilityId);
+            var invoiceResult = _invoiceService.GetInvoices(parkingFacilityId);
+            return invoiceResult.Match<ActionResult>(
+                invoices =>
+                {
+                    return Ok(invoices);
+                },
+                exception =>
+                {
+                    if (exception is ParkingFacilityNotFoundException)
+                    {
+                        return NotFound(exception.Message);
+                    }
+                    return BadRequest(exception.Message);
+                });
         }
     }
 }

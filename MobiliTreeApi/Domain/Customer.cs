@@ -17,6 +17,7 @@ namespace MobiliTreeApi.Domain
             ContractedParkingFacilityIds = contractedParkingFacilityIds.ToList();
         }
 
+        [Required]
         public string Id { get; set; }
         [Required]
         public string Name { get; set; }

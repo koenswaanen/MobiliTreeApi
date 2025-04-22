@@ -1,9 +1,10 @@
-﻿using MobiliTreeApi.Domain;
+﻿using LanguageExt;
+using MobiliTreeApi.Domain;
 
 namespace MobiliTreeApi.Repositories
 {
     public interface ICustomerRepository
     {
-        Customer GetCustomer(string customerId);
+        Option<Customer> GetCustomer(string customerId);
     }
 }

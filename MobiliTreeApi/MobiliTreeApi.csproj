@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="LanguageExt.Core" Version="4.4.9" />
     <PackageReference Include="NSwag.AspNetCore" Version="14.3.0" />
   </ItemGroup>
 
