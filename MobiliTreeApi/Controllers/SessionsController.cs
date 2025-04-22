@@ -19,15 +19,20 @@ namespace MobiliTreeApi.Controllers
         [HttpPost]
         public ActionResult Post(Session value)
         {
-            _sessionsRepository.AddSession(value);
-            return Ok();
+            if(ModelState.IsValid )
+            {
+                _sessionsRepository.AddSession(value);
+                return Ok();               
+            }
+            return BadRequest(ModelState);
+
         }
 
         [HttpGet]
         [Route("{parkingFacilityId}")]
-        public List<Session> Get(string parkingFacilityId)
+        public ActionResult<List<Session>> Get(string parkingFacilityId)
         {
-            return _sessionsRepository.GetSessions(parkingFacilityId);
+            return Ok(_sessionsRepository.GetSessions(parkingFacilityId));
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using MobiliTreeApi.Domain;
+using MobiliTreeApi.Exceptions;
 using MobiliTreeApi.Repositories;
 
 namespace MobiliTreeApi.Services
@@ -30,22 +31,59 @@ namespace MobiliTreeApi.Services
             var serviceProfile = _parkingFacilityRepository.GetServiceProfile(parkingFacilityId);
             if (serviceProfile == null)
             {
-                throw new ArgumentException($"Invalid parking facility id '{parkingFacilityId}'");
+                throw new ParkingFacilityNotFoundException("Invalid Parking Facility Id", $"Invalid parking facility id '{parkingFacilityId}'");
             }
+
+            List<Invoice> invoices = [];
 
             var sessions = _sessionsRepository.GetSessions(parkingFacilityId);
 
-            return sessions.GroupBy(x => x.CustomerId).Select(x => new Invoice
-            {
-                ParkingFacilityId = parkingFacilityId,
-                CustomerId = x.Key,
-                Amount = 0
-            }).ToList();
-        }
+            var sessionsByCustomer = sessions.GroupBy(x => x.CustomerId);
+
+            foreach (var session in sessionsByCustomer) { 
+                var customer = _customerRepository.GetCustomer(session.Key);
+                var customerSessions = session.ToList();
+                var customerHasContract = customer?.ContractedParkingFacilityIds.Contains(parkingFacilityId) ?? false;
+                var invoice = new Invoice
+                {
+                    CustomerId = session.Key,                    
+                    ParkingFacilityId = parkingFacilityId   ,
+                    Amount = CalculateAmount(customerSessions, serviceProfile, customerHasContract)
+                };
+                invoices.Add(invoice);
+            }            
+            return invoices;
+        }        
 
         public Invoice GetInvoice(string parkingFacilityId, string customerId)
         {
             throw new NotImplementedException();
+        }
+
+        private static decimal CalculateAmount(List<Session> customerSessions, ServiceProfile serviceProfile, bool customerHasContract)
+        {
+            decimal totalAmount = 0;
+            foreach(var session in customerSessions)
+            {
+                var isWeekend = session.StartDateTime.Value.DayOfWeek == DayOfWeek.Saturday || session.StartDateTime.Value.DayOfWeek == DayOfWeek.Sunday;
+
+                IList<TimeslotPrice> timeslotPrices;
+                if (customerHasContract)
+                {
+                    timeslotPrices = isWeekend ? serviceProfile.WeekendPrices : serviceProfile.WeekDaysPrices;
+                }
+                else
+                {
+                    timeslotPrices = isWeekend ? serviceProfile.OverrunWeekendPrices : serviceProfile.OverrunWeekDaysPrices;
+                }
+
+                TimeSpan diff = session.EndDateTime.Value - session.StartDateTime.Value;
+                var hours = diff.TotalHours;
+
+                var timeslotPrice = timeslotPrices.Single(t => session.StartDateTime.Value.Hour >= t.StartHour && session.StartDateTime.Value.Hour < t.EndHour);
+                totalAmount += (decimal)hours * timeslotPrice.PricePerHour;
+            }
+            return totalAmount;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace MobiliTreeApi.Domain
@@ -17,7 +18,7 @@ namespace MobiliTreeApi.Domain
         }
 
         public string Id { get; set; }
-
+        [Required]
         public string Name { get; set; }
 
         public List<string> ContractedParkingFacilityIds { get; set; }

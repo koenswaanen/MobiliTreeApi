@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MobiliTreeApi.Repositories;
 using MobiliTreeApi.Services;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace MobiliTreeApi
 {
@@ -29,6 +30,24 @@ namespace MobiliTreeApi
             services.AddSingleton(FakeData.GetSeedCustomers());
             services.AddSingleton(FakeData.GetSeedServiceProfiles());
             services.AddSingleton(FakeData.GetSeedSessions());
+            services.AddProblemDetails(options =>
+            {
+                options.CustomizeProblemDetails = context =>
+                {
+                    context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
+                    context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+                    
+                    var activity = context.HttpContext.Features.Get<IHttpActivityFeature>()?.Activity;
+                    context.ProblemDetails.Extensions.TryAdd("traceId", activity?.Id);                    
+                };
+            });
+
+            services.AddOpenApiDocument(config =>
+            {
+                config.Title = "MobliTree";
+                config.Version = "v1";
+            });
+
 
         }
 
@@ -38,6 +57,8 @@ namespace MobiliTreeApi
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseOpenApi();
+                app.UseSwaggerUi();
             }
 
             app.UseRouting();

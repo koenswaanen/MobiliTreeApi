@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using MobiliTreeApi.Exceptions;
 using MobiliTreeApi.Repositories;
 using MobiliTreeApi.Services;
 using Xunit;
@@ -22,7 +23,7 @@ namespace MobiliTreeApi.Tests
         [Fact]
         public void GivenSessionsService_WhenQueriedForInexistentParkingFacility_ThenThrowException()
         {
-            var ex = Assert.Throws<ArgumentException>(() => GetSut().GetInvoices("nonExistingParkingFacilityId"));
+            var ex = Assert.Throws<ParkingFacilityNotFoundException>(() => GetSut().GetInvoices("nonExistingParkingFacilityId"));
             Assert.Equal("Invalid parking facility id 'nonExistingParkingFacilityId'", ex.Message);
         }
 
