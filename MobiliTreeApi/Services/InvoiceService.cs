@@ -37,41 +37,66 @@ namespace MobiliTreeApi.Services
                 return new Result<List<Invoice>>(new ParkingFacilityNotFoundException("Invalid Parking Facility Id", $"Invalid parking facility id '{parkingFacilityId}'"));
             }
             var serviceProfile = serviceProfileOption.ValueUnsafe();
-            List<Invoice> invoices = [];
-
+            
             var sessions = _sessionsRepository.GetSessions(parkingFacilityId);
 
             var sessionsByCustomer = sessions.GroupBy(x => x.CustomerId);
 
-            foreach (var session in sessionsByCustomer) { 
-                Option<Customer> customer = _customerRepository.GetCustomer(session.Key);
+            var invoices = sessionsByCustomer.Select(session =>
+            {
+                var customer = _customerRepository.GetCustomer(session.Key);
                 var customerSessions = session.ToList();
-                var customerHasContract = customer.Match(c =>
-                {
-                    return c.ContractedParkingFacilityIds.Contains(parkingFacilityId);
-                },
-                () => false);
+                var customerHasContract = customer.Match(
+                    c => c.ContractedParkingFacilityIds.Contains(parkingFacilityId),
+                    () => false
+                );
 
-                var invoice = new Invoice
+                return new Invoice
                 {
-                    CustomerId = session.Key,                    
-                    ParkingFacilityId = parkingFacilityId   ,
+                    CustomerId = session.Key,
+                    ParkingFacilityId = parkingFacilityId,
                     Amount = CalculateAmount(customerSessions, serviceProfile, customerHasContract)
                 };
-                invoices.Add(invoice);
-            }            
+            }).ToList();
             return invoices;
-        }        
+        }
 
-        public Invoice GetInvoice(string parkingFacilityId, string customerId)
+        public Option<Invoice> GetInvoice(string parkingFacilityId, string customerId)
         {
-            throw new NotImplementedException();
+            var serviceProfileOption = _parkingFacilityRepository.GetServiceProfile(parkingFacilityId);
+            if (serviceProfileOption.IsNone)
+            {
+                throw new ParkingFacilityNotFoundException("Invalid Parking Facility Id", $"Invalid parking facility id '{parkingFacilityId}'");
+            }
+            var serviceProfile = serviceProfileOption.ValueUnsafe();
+
+            var sessions = _sessionsRepository.GetSessions(parkingFacilityId)
+                .Where(s => s.CustomerId == customerId)
+                .ToList();
+            if (sessions.Count == 0)
+            {
+                return Option<Invoice>.None;
+            }
+
+                var customer = _customerRepository.GetCustomer(customerId);
+            var customerHasContract = customer.Match(
+                c => c.ContractedParkingFacilityIds.Contains(parkingFacilityId),
+                () => false
+            );
+
+            return new Invoice
+            {
+                CustomerId = customerId,
+                ParkingFacilityId = parkingFacilityId,
+                Amount = CalculateAmount(sessions, serviceProfile, customerHasContract)
+            };
         }
 
         private static decimal CalculateAmount(List<Session> customerSessions, ServiceProfile serviceProfile, bool customerHasContract)
         {
             decimal totalAmount = 0;
-            foreach(var session in customerSessions)
+            const int minutesInAnHour = 60;
+            foreach (var session in customerSessions)
             {
                 var isWeekend = session.StartDateTime.Value.DayOfWeek == DayOfWeek.Saturday || session.StartDateTime.Value.DayOfWeek == DayOfWeek.Sunday;
 
@@ -86,12 +111,12 @@ namespace MobiliTreeApi.Services
                 }
 
                 TimeSpan diff = session.EndDateTime.Value - session.StartDateTime.Value;
-                var hours = diff.TotalHours;
+                var minutes = diff.TotalMinutes;
 
                 var timeslotPrice = timeslotPrices.Single(t => session.StartDateTime.Value.Hour >= t.StartHour && session.StartDateTime.Value.Hour < t.EndHour);
-                totalAmount += (decimal)hours * timeslotPrice.PricePerHour;
+                totalAmount += (decimal)minutes * (timeslotPrice.PricePerHour / minutesInAnHour);
             }
-            return totalAmount;
+            return decimal.Round(totalAmount, 2);
         }
     }
 }

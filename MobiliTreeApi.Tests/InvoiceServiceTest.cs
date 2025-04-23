@@ -53,10 +53,13 @@ namespace MobiliTreeApi.Tests
         public void GivenOneSessionInTheStore_WhenQueriedForExistingParkingFacility_ThenReturnInvoiceListWithOneElement()
         {
             var startDateTime = new DateTime(2018, 12, 15, 12, 25, 0);
+            var customerId = "some customer";
+            var parkingFacilityId = "pf001";
+
             _sessionsRepository.AddSession(new Domain.Session
             {
-                CustomerId = "some customer",
-                ParkingFacilityId = "pf001",
+                CustomerId = customerId,
+                ParkingFacilityId = parkingFacilityId,
                 StartDateTime = startDateTime,
                 EndDateTime = startDateTime.AddHours(1)
             });
@@ -65,8 +68,8 @@ namespace MobiliTreeApi.Tests
 
             var invoice = Assert.Single(result);
             Assert.NotNull(invoice);
-            Assert.Equal("pf001", invoice.ParkingFacilityId);
-            Assert.Equal("some customer", invoice.CustomerId);
+            Assert.Equal(parkingFacilityId, invoice.ParkingFacilityId);
+            Assert.Equal(customerId, invoice.CustomerId);
         }
 
         [Fact]
